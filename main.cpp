@@ -8,25 +8,34 @@ int main() {
     int n, m;
     cin >> n >> m;
     
-    // dp[i] represents the expected number of days to eat i apples
-    vector<double> dp(n + 1, 0.0);
+    // dp[eaten] represents the expected number of additional days needed to eat m apples,
+    // given that we have already eaten 'eaten' apples
+    vector<double> dp(m + 1, 0.0);
     
-    // Base case: to eat 0 apples, it takes 0 days
-    dp[0] = 0.0;
+    // Base case: if we have already eaten m apples, we need 0 more days
+    dp[m] = 0.0;
     
-    // Fill the dp array
-    for (int i = 1; i <= n; i++) {
-        // When there are i apples left, the person eats k apples with probability 1/i for k = 1,2,...,i
-        // So the expected days to eat i apples is 1 (for the current day) plus the average of dp[i-k] for k=1 to i
+    // Fill the dp array backwards from m-1 down to 0
+    for (int eaten = m - 1; eaten >= 0; eaten--) {
+        // Current number of apples remaining
+        int remaining = n - eaten;
+        
+        // We can eat k apples with probability 1/remaining for k = 1,2,...,remaining
+        // But we only need to consider cases where we don't reach m apples yet
+        // If we eat k apples and eaten + k >= m, we reach our goal in 1 day (so no additional days)
+        // So we only sum over k from 1 to min(remaining, m - eaten - 1)
+        int max_k = min(remaining, m - eaten - 1);
         double sum = 0.0;
-        for (int k = 1; k <= i; k++) {
-            sum += dp[i - k];
+        for (int k = 1; k <= max_k; k++) {
+            sum += dp[eaten + k];
         }
-        dp[i] = 1.0 + sum / i;
+        
+        // Expected days = 1 (current day) + average of additional days needed
+        dp[eaten] = 1.0 + sum / remaining;
     }
     
-    // Output the expected days to eat m apples
-    cout << fixed << setprecision(2) << dp[m] << endl;
+    // Output the expected days to eat m apples starting from 0 eaten
+    cout << fixed << setprecision(2) << dp[0] << endl;
     
     return 0;
 }
